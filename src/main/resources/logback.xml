@@ -1,0 +1,11 @@
+<configuration>
+  <appender name="AWSLambda" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder type="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+      <pattern>%d{yyyy-MM-dd HH:mm:ss} %X{AWSRequestId} %-5p %c{1}:%L - %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="info">
+    <appender-ref ref="AWSLambda" />
+  </root>
+</configuration>

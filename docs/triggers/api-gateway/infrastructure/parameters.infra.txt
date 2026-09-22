@@ -1,0 +1,29 @@
+# ================================================
+# ---- API Gateway / ELB Specific variables
+# ---- -------------------------------------------
+- ParameterKey: ContextPath
+  ParameterValue: "${ContextPath}"
+
+- ParameterKey: APIGWRestApiIdSsm
+  ParameterValue: "${ApiGatewayIdSsm}"
+- ParameterKey: APIGWRootResourceIdSsm
+  ParameterValue: "${RootResourceIdSsm}"
+
+- ParameterKey: ELBPriority
+  ParameterValue: "${Priority}"
+- ParameterKey: ELBSecurityGroupSsmDAL
+  ParameterValue: "${DalAlbSecurityGroupSsmExtra}"
+- ParameterKey: ELBSecurityGroupSsmWEB
+  ParameterValue: "${WebAlbSecurityGroupSsm}"
+- ParameterKey: ELBHealthCheckPath
+  ParameterValue: "${HealthCheckPath}"
+- ParameterKey: ELBThresholdCountHealthy
+  ParameterValue: "${HealthyThresholdCount}"
+- ParameterKey: ELBThresholdCountUnhealthy
+  ParameterValue: "${UnhealthyThresholdCount}"
+- ParameterKey: ELBHealthCheckTimeoutSeconds
+  ParameterValue: "${HealthCheckTimeoutSeconds}"
+- ParameterKey: ELBHealthCheckIntervalSeconds
+  ParameterValue: "${HealthCheckIntervalSeconds}"
+- ParameterKey: ELBListenerArnValue
+  ParameterValue: "${DalAlbHttpsListenerArnSsmExtra}"

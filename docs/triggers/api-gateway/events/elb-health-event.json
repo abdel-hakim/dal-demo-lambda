@@ -1,0 +1,15 @@
+{
+  "requestContext": {
+    "elb": {
+      "targetGroupArn": "arn:aws:elasticloadbalancing:eu-west-1:855389350164:targetgroup/dal-re-ElbTa-GOUKBNUMET9X/d0f8e808090f03ff"
+    }
+  },
+  "httpMethod": "GET",
+  "path": "/demo/actuator/health",
+  "queryStringParameters": {},
+  "headers": {
+    "user-agent": "ELB-HealthChecker/2.0"
+  },
+  "body": "",
+  "isBase64Encoded": false
+}

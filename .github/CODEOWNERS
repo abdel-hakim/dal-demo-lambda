@@ -1,0 +1,17 @@
+# CODEOWNERS
+# This file was generated from Azure DevOps branch policies
+
+# Reviewers extracted from ADO branch policies
+# ADO identities have been automatically mapped to GitHub format:
+#   - Teams: @[Digital]\Team Name → @VFUK-Digital/team-name (slug)
+#   - Users: user.name@vodafone.com → @user-name_voda
+#
+# The following teams/users have been excluded:
+#   - @VFUK-Digital/guardians-of-the-galaxy
+
+* @VFUK-Digital/build-and-deploy @VFUK-Digital/nexus-approval-group
+
+* @abdel-hakim/platform-team
+renovate.json @abdel-hakim/platform-team @abdel-hakim/build-and-deploy
+cicd/** @abdel-hakim/platform-team
+.github/workflows/** @abdel-hakim/platform-team

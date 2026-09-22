@@ -1,0 +1,261 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Template to deploy a Java lambda function.
+
+# =========================================================
+# Parameters
+# =========================================================
+Parameters:
+
+  # ---- Environment
+  # ---------------------------------------------------------
+  Environment:
+    Description: Name of the Environment including flavour
+    Type: String
+
+  ShortEnvironment:
+    Description: Name of the Environment without flavour (S3 bucket where the package is located)
+    Type: String
+
+  ReleaseTag:
+    Description: The release version
+    Type: String
+
+  BuildDefinitionName:
+    Description: The name of the build that built the lambda code
+    Type: String
+
+  BuildId:
+    Description: The build Id use to deploy
+    Type: String
+
+  BuildNumber:
+    Description: The build Id use to build
+    Type: String
+
+  Domain:
+    Description: The domain name e.g. dx
+    Type: String
+    Default: dx
+
+  Division:
+    Description: The division under which this lambda function lies
+    Type: String
+    Default: consumer
+
+  Program:
+    Description: The program under which this lambda function lies
+    Type: String
+    Default: reinvent
+
+  Team:
+    Description: The team under which this lambda function lies
+    Type: String
+    Default: platform-team
+
+
+  # ---- AWS resources variables
+  # ---------------------------------------------------------
+  VpcIdSsm:
+    Description: VPC ID SSM
+    Type: 'AWS::SSM::Parameter::Value<AWS::EC2::VPC::Id>'
+
+  LambdaSubnetASsm:
+    Description: Private Lambda Subnet ID SSM Value.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+  
+  LambdaSubnetBSsm:
+    Description: Private Lambda Subnet ID SSM Value.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+
+  LambdaSubnetCSsm:
+    Description: Private Lambda Subnet ID SSM Value.
+    Type: 'AWS::SSM::Parameter::Value<String>'
+
+  # ---- Third Party Services - DataDog, Logging
+  # ---------------------------------------------------------
+  DataDogAPIKeySsm:
+    Description: Datadog API Key
+    Type: AWS::SSM::Parameter::Value<String>
+
+
+  # ---- Lambda Settings
+  # ---------------------------------------------------------
+  FunctionName:
+    Description: Name of the Lambda function
+    Type: String
+
+  Memory:
+    Description: Hard limit for memory in MB available to lambda
+    Type: Number
+    Default: 512
+
+  Timeout:
+    Description: Timeout in seconds for lambda running time
+    Type: Number
+    Default: 300
+
+  ReservedConcurrentExecutions:
+    Description: The number of simultaneous executions to reserve for the function.
+    Type: Number
+
+  # ---- OBP (OutBoundProxy) Variables
+  # ---------------------------------------------------------
+  HttpProxy:
+    Description: Proxy server address for http requests.
+    Type: String
+
+  NoProxy:
+    Description: Space-separated list of hosts that should bypass the proxy.
+    Type: String
+
+  # ---- Lambda Variables
+  # ---------------------------------------------------------
+
+
+
+# =========================================================
+# Conditions Definitions
+# =========================================================
+#Conditions:
+
+
+# =========================================================
+# Resources Definitions
+# =========================================================
+Resources:
+
+  # ---- SnapStart Definition (creating Version+Alias)
+  # ---------------------------------------------------------
+  LambdaSnapStartVersion:
+    Type: AWS::Lambda::Version
+    Properties:
+      Description: !Sub 'SnapStart Version ${BuildId}'
+      FunctionName: !Ref LambdaFunction
+
+  LambdaSnapStartAlias:
+    Type: AWS::Lambda::Alias
+    Properties:
+      Name: SnapStart
+      FunctionName: !Ref LambdaFunction
+      FunctionVersion: !GetAtt LambdaSnapStartVersion.Version
+
+  # ---- Role Definition
+  # ---------------------------------------------------------
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      RoleName: !Sub '${BuildDefinitionName}-${Environment}-role'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Domain
+          Value: !Ref 'Domain'
+        - Key: Division
+          Value: !Ref 'Division'
+        - Key: Program
+          Value: !Ref 'Program'
+        - Key: Team
+          Value: !Ref 'Team'
+
+
+  # ---- Function Definition
+  # ---------------------------------------------------------
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Runtime: java21
+      Handler: com.vf.uk.dal.demo.lambda.DemoLambdaHandler::handleRequest
+      Role: !GetAtt 'LambdaRole.Arn'
+      Code:
+        S3Bucket: 'dx-lambda-storage'
+        S3Key: !Sub '${BuildDefinitionName}/${BuildNumber}/${BuildDefinitionName}__${ReleaseTag}.jar'
+      Description: Demo Lambda created by the platform command
+      FunctionName: !Ref FunctionName
+      MemorySize: !Ref 'Memory'
+      Timeout: !Ref 'Timeout'
+      SnapStart:
+        ApplyOn: PublishedVersions
+      VpcConfig:
+        SecurityGroupIds:
+          - !GetAtt DefaultLambdaSecurityGroup.GroupId
+        SubnetIds:
+          - !Ref LambdaSubnetASsm
+          - !Ref LambdaSubnetBSsm
+          - !Ref LambdaSubnetCSsm
+      ReservedConcurrentExecutions: !Ref ReservedConcurrentExecutions
+      Environment:
+        Variables:
+          # -- OBP Settings
+          HTTP_PROXY: !Ref HttpProxy
+          HTTPS_PROXY: !Ref HttpProxy
+          NO_PROXY: !Ref NoProxy
+          # -- DATADOG Settings
+          JAVA_TOOL_OPTIONS: -javaagent:"/opt/java/lib/dd-java-agent.jar" -XX:+TieredCompilation -XX:TieredStopAtLevel=1 -Dotel.java.global-autoconfigure.enabled=true -Dotel.exporter.otlp.protocol=grpc -Dotel.exporter.otlp.endpoint=http://0.0.0.0:4317
+          DD_LOG_LEVEL: "Debug"
+          DD_TRACE_DEBUG: "true"
+          DD_TRACE_OTEL_ENABLED: "true"
+          AWS_LAMBDA_EXEC_WRAPPER: "/opt/datadog_wrapper"
+          DD_SITE: "datadoghq.com"
+          DD_API_KEY: !Ref DataDogAPIKeySsm
+          DD_TRACE_ENABLED: "true"
+          DD_ENV: !Sub ${Environment}
+          DD_SERVICE: !Ref 'BuildDefinitionName'
+          DD_VERSION: !Ref 'ReleaseTag'
+          DD_PROFILING_ENABLED: true
+          DD_TAGS: !Sub 'version:${ReleaseTag},environment:${Environment}'
+          DD_TRACE_METHODS: "com.vf.uk.dal.demo.lambda.DemoLambdaHandler[*]"
+          # -- Variables
+          ENV_NAME: !Ref 'Environment'
+          VERSION: !Ref BuildId
+      Layers:
+        - !Sub 'arn:aws:lambda:${AWS::Region}:464622532012:layer:dd-trace-java:14'
+        - !Sub 'arn:aws:lambda:${AWS::Region}:464622532012:layer:Datadog-Extension:55'
+
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Domain
+          Value: !Ref 'Domain'
+        - Key: Division
+          Value: !Ref 'Division'
+        - Key: Program
+          Value: !Ref 'Program'
+        - Key: Team
+          Value: !Ref 'Team'
+
+  # ---- Security Group Definition
+  # ---------------------------------------------------------
+  DefaultLambdaSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "Security group for Lambda"
+      VpcId: !Ref VpcIdSsm
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          FromPort: -1
+          ToPort: -1
+          CidrIp: '0.0.0.0/0'
+          Description: 'Outbound Traffic Rule'
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Domain
+          Value: !Ref 'Domain'
+        - Key: Division
+          Value: !Ref 'Division'
+        - Key: Program
+          Value: !Ref 'Program'
+        - Key: Team
+          Value: !Ref 'Team'

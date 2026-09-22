@@ -1,0 +1,57 @@
+name: Check Linked Work Items
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+jobs:
+  linked-work-item:
+    runs-on: ["build-agents-basic-fw", "ghr-${{ github.run_id }}"]
+    steps:
+      - name: Check for Work Item Reference
+        uses: actions/github-script@v9
+        env:
+          SKIP_BRANCH_PREFIXES: ${{ vars.WORK_ITEM_SKIP_BRANCH_PREFIXES }}
+        with:
+          script: |
+            // Skip this check for branches whose name starts with any
+            // configured prefix (e.g. Renovate / Dependabot PRs). The job
+            // still runs and reports success, so this required check is
+            // not left pending on those PRs.
+            const headRef = context.payload.pull_request.head.ref;
+            let skipPrefixes = (process.env.SKIP_BRANCH_PREFIXES || '')
+              .split(',')
+              .map(prefix => prefix.trim())
+              .filter(prefix => prefix.length > 0);
+
+            // Fall back to 'renovate/' whenever WORK_ITEM_SKIP_BRANCH_PREFIXES
+            // is unset or effectively empty, so Renovate PRs are never failed
+            // by this check even before the variable is configured.
+            if (skipPrefixes.length === 0) {
+              skipPrefixes = ['renovate/'];
+            }
+
+            if (skipPrefixes.some(prefix => headRef.startsWith(prefix))) {
+              core.info(`Skipping work item check for branch '${headRef}' (matched a skip prefix).`);
+              return;
+            }
+
+            const prTitle = context.payload.pull_request.title;
+            const prBody = context.payload.pull_request.body || '';
+
+            // Regex pattern to match AB#xxxxx format
+            const workItemPattern = /AB#\d+/i;
+
+            const titleHasWorkItem = workItemPattern.test(prTitle);
+            const bodyHasWorkItem = workItemPattern.test(prBody);
+
+            if (titleHasWorkItem || bodyHasWorkItem) {
+              const location = titleHasWorkItem ? 'title' : 'description';
+              const match = titleHasWorkItem ? prTitle.match(workItemPattern) : prBody.match(workItemPattern);
+              core.info(`✓ Work item reference found in PR ${location}: ${match[0]}`);
+              core.info('Check passed!');
+            } else {
+              core.setFailed('❌ No work item reference found in PR title or description.');
+              core.setFailed('Please add a work item reference in the format: AB#12345');
+              process.exit(1);
+            }

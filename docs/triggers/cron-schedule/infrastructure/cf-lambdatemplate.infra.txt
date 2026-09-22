@@ -1,0 +1,49 @@
+# =========================================================
+# Parameters
+# =========================================================
+Parameters:
+    # ---- CRON Settings
+    # ---------------------------------------------------------
+    CronScheduleFlag:
+      Description: Schedule Enabling Flag
+      Type: String
+      AllowedValues:
+        - true
+        - false
+
+    CronSchedule:
+        Description: 'Schedule using https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.html'
+        Type: String
+
+# =========================================================
+# Conditions Definitions
+# =========================================================
+Conditions:
+  CronScheduleEnabled: !Equals [ !Ref CronScheduleFlag, "true"]
+
+
+# =========================================================
+# Resources Definitions
+# =========================================================
+Resources:
+    # ---- CRON Settings
+    # ---------------------------------------------------------
+    CronScheduleRule:
+      Type: AWS::Events::Rule
+      Condition: CronScheduleEnabled
+      Properties:
+        Description: A schedule for the Lambda function.
+        ScheduleExpression: !Ref CronSchedule
+        State: ENABLED
+        Targets:
+          - Arn: !Ref LambdaSnapStartAlias
+            Id: LambdaSchedule
+
+    CronSchedulePermission:
+      Type: AWS::Lambda::Permission
+      Condition: CronScheduleEnabled
+      Properties:
+        Action: 'lambda:InvokeFunction'
+        FunctionName: !Ref LambdaSnapStartAlias
+        Principal: 'events.amazonaws.com'
+        SourceArn: !GetAtt CronScheduleRule.Arn

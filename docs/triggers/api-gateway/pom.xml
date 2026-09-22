@@ -1,0 +1,55 @@
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>2.5.5</version>
+</parent>
+
+<properties>
+    <main.class>com.vf.uk.dal.demo.springboot.SpringBootExampleApplication</main.class>
+    <dal.core.version>JETBLACKHEART.SR73</dal.core.version> <!-- or latest version -->
+</properties>
+
+<dependencyManagement>
+    <dependencies>
+        <dependency>
+            <groupId>com.vf.uk.dal</groupId>
+            <artifactId>dal-core-dependencies</artifactId>
+            <version>${dal.core.version}</version>
+            <type>pom</type>
+            <scope>import</scope>
+        </dependency>
+    </dependencies>
+</dependencyManagement>
+
+<dependencies>
+    <dependency>
+        <groupId>com.amazonaws.serverless</groupId>
+        <artifactId>aws-serverless-java-container-springboot2</artifactId>
+        <version>1.9.3</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-actuator-autoconfigure</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>com.vf.uk.dal</groupId>
+        <artifactId>dal-core-actuator</artifactId>
+        <exclusions>
+            <exclusion>
+                <artifactId>dal-core-webclient</artifactId>
+                <groupId>com.vf.uk.dal</groupId>
+            </exclusion>
+            <exclusion>
+                <artifactId>spring-boot-starter-webflux</artifactId>
+                <groupId>org.springframework.boot</groupId>
+            </exclusion>
+        </exclusions>
+    </dependency>
+</dependencies>

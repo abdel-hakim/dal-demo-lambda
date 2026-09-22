@@ -1,0 +1,7 @@
+# =========================================================
+# ---- CRON Settings
+# ---------------------------------------------------------
+- ParameterKey: CronSchedule
+  ParameterValue: "${CRONSCHEDULE}"
+- ParameterKey: CronScheduleFlag
+  ParameterValue: "${CRONSCHEDULEFLAG}"

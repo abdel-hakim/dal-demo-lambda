@@ -1,0 +1,13 @@
+{
+  "version": "0",
+  "id": "402a56e9-b7c2-4f03-01fe-a9b0fab4123f",
+  "detail-type": "Scheduled Event",
+  "source": "aws.events",
+  "account": "855389350164",
+  "time": "2023-12-06T09:50:00Z",
+  "region": "eu-west-1",
+  "resources": [
+    "arn:aws:events:eu-west-1:123456789:rule/dal-demo-lambda-dev1-CronScheduleRule-ABCDEFGHI"
+  ],
+  "detail": {}
+}

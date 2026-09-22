@@ -1,0 +1,185 @@
+# =========================================================
+# Parameters
+# =========================================================
+Parameters:
+  # ---- API Gateway / ELB Specific variables
+  # ---- -------------------------------------------
+  ContextPath:
+    Description: Context Path for Lambda URL
+    Type: String
+
+  APIGWRestApiIdSsm:
+    Description: System Manager Parameter APIGW ID.
+    Type: AWS::SSM::Parameter::Value<String>
+  APIGWRootResourceIdSsm:
+    Description: System Manager Parameter APIGW Root Resource ID.
+    Type: AWS::SSM::Parameter::Value<String>
+
+  ELBPriority:
+    Description: Match priority sequence number for listener rule on ALB
+    Type: Number
+  ELBSecurityGroupSsmDAL:
+    Description: Dal Source SecurityGroup Id Ssm
+    Type: AWS::SSM::Parameter::Value<String>
+  ELBSecurityGroupSsmWEB:
+    Description: Web Source SecurityGroup Id Ssm
+    Type: AWS::SSM::Parameter::Value<String>
+  ELBHealthCheckPath:
+    Description: The location in the templates S3 bucket in which the CF templates get uploaded
+    Type: String
+  ELBThresholdCountHealthy:
+    Description: Healthy Threshold Count Number
+    Type: Number
+  ELBThresholdCountUnhealthy:
+    Description: Unhealthy Threshold Count Number
+    Type: Number
+  ELBHealthCheckTimeoutSeconds:
+    Description: Health Check Timeout In Seconds
+    Type: Number
+  ELBHealthCheckIntervalSeconds:
+    Description: Health Check Interval In Seconds
+    Type: Number
+  ELBListenerArnValue:
+    Description: The listener arn for listener rule.
+    Type: AWS::SSM::Parameter::Value<String>
+
+# =========================================================
+# Resources Definitions
+# =========================================================
+Resources:
+  # ---- API Gateway / ELB Specific variables
+  # ---------------------------------------------------------
+  ApiGatewayLambdaPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName: !Ref LambdaSnapStartAlias
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${APIGWRestApiIdSsm}/*/*/${ContextPath}/*'
+
+  ApiGatewayResourceContextPath:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref APIGWRootResourceIdSsm
+      PathPart: !Sub '${ContextPath}'
+      RestApiId: !Ref APIGWRestApiIdSsm
+
+  ApiGatewayResourceProxyPath:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !Ref ApiGatewayResourceContextPath
+      PathPart: "{proxy+}"
+      RestApiId: !Ref APIGWRestApiIdSsm
+
+  ApiGatewayMethodANY:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref APIGWRestApiIdSsm
+      ResourceId: !Ref ApiGatewayResourceProxyPath
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub
+          - arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${lambdaArn}/invocations
+          - lambdaArn: !Ref LambdaSnapStartAlias
+
+  ApiGatewayDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn: [ ApiGatewayMethodANY ]
+    Properties:
+      Description: !Sub 'Deployment for ${FunctionName}-${Environment}'
+      RestApiId: !Ref APIGWRestApiIdSsm
+      StageName: !Sub ${Environment}
+
+  ElbTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: ElbPermission
+    Properties:
+      HealthCheckEnabled: true
+      HealthCheckPath: !Sub '/${ContextPath}/${ELBHealthCheckPath}'
+      HealthyThresholdCount: !Ref 'ELBThresholdCountHealthy'
+      UnhealthyThresholdCount: !Ref 'ELBThresholdCountUnhealthy'
+      HealthCheckTimeoutSeconds: !Ref 'ELBHealthCheckTimeoutSeconds'
+      HealthCheckIntervalSeconds: !Ref 'ELBHealthCheckIntervalSeconds'
+      Matcher:
+        HttpCode: 200-299
+      TargetType: lambda
+      Targets:
+        - Id: !Ref LambdaSnapStartAlias
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Domain
+          Value: !Ref 'Domain'
+        - Key: Division
+          Value: !Ref 'Division'
+        - Key: Program
+          Value: !Ref 'Program'
+        - Key: Team
+          Value: !Ref 'Team'
+
+  ElbListenerRule:
+    Type: AWS::ElasticLoadBalancingV2::ListenerRule
+    Properties:
+      Actions:
+        - TargetGroupArn: !Ref 'ElbTargetGroup'
+          Type: forward
+      Conditions:
+        - Field: path-pattern
+          PathPatternConfig:
+            Values:
+              - !Sub '/${ContextPath}/*'
+      ListenerArn: !Ref ELBListenerArnValue
+      Priority: !Ref ELBPriority
+
+  ElbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "The security group to be used with lambda"
+      VpcId: !Ref VpcIdSsm
+      SecurityGroupEgress:
+        - IpProtocol: '-1'
+          FromPort: -1
+          ToPort: -1
+          CidrIp: '0.0.0.0/0'
+          Description: 'Outbound Traffic Rule'
+      Tags:
+        - Key: Name
+          Value: !Ref 'AWS::StackName'
+        - Key: Domain
+          Value: !Ref 'Domain'
+        - Key: Division
+          Value: !Ref 'Division'
+        - Key: Program
+          Value: !Ref 'Program'
+        - Key: Team
+          Value: !Ref Team
+
+  ElbSecurityGroupIngressDAL:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: Ingress Rule for dal
+      GroupId: !Ref ELBSecurityGroupSsmDAL
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !Ref ElbSecurityGroup
+
+  ElbWebSecurityGroupIngressWEB:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Properties:
+      Description: Ingress Rule for Web
+      GroupId: !Ref ELBSecurityGroupSsmWEB
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      SourceSecurityGroupId: !Ref ElbSecurityGroup
+
+  ElbPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref LambdaSnapStartAlias
+      Action: lambda:InvokeFunction
+      Principal: elasticloadbalancing.amazonaws.com

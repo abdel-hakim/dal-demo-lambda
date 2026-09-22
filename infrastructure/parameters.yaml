@@ -1,0 +1,73 @@
+# =========================================================
+# ---- Environment
+# ---------------------------------------------------------
+# ---- Those variables allows access to ssm parameters based on env
+# ---------------------------------------------------------
+- ParameterKey: Environment
+  ParameterValue: "${DxLShortEnvironmentName}${DxLEnvironmentFlavour}"
+- ParameterKey: ShortEnvironment
+  ParameterValue: "${DxLShortEnvironmentName}"
+- ParameterKey: ReleaseTag
+  ParameterValue: "${ReleaseTag}"
+- ParameterKey: BuildDefinitionName
+  ParameterValue: "${BUILD_DEFINITIONNAME}"
+- ParameterKey: BuildId
+  ParameterValue: "${BuildId}"
+- ParameterKey: BuildNumber
+  ParameterValue: "${BuildNumber}"
+- ParameterKey: Domain
+  ParameterValue: "${DOMAIN}"
+- ParameterKey: Division
+  ParameterValue: "${DIVISION}"
+- ParameterKey: Program
+  ParameterValue: "${PROGRAM}"
+
+# =========================================================
+# ---- AWS resources variables
+# ---- ----------------------------------------------------
+# ---- VPC, ECS, LoadBalancer & others
+# ---------------------------------------------------------
+- ParameterKey: VpcIdSsm
+  ParameterValue: "${VpcIdSsm}"
+- ParameterKey: LambdaSubnetASsm
+  ParameterValue: "${LambdaSubnetASsm}"
+- ParameterKey: LambdaSubnetBSsm
+  ParameterValue: "${LambdaSubnetBSsm}"
+- ParameterKey: LambdaSubnetCSsm
+  ParameterValue: "${LambdaSubnetCSsm}"
+
+# =========================================================
+# ---- Third Party Services - AppD, DataDog, Logging
+# ---------------------------------------------------------
+- ParameterKey: DataDogAPIKeySsm
+  ParameterValue: "${DataDogApiKeySsm}"
+
+# =========================================================
+# ---- Lambda Settings
+# ---- ----------------------------------------------------
+# ---- Lambda Function Name etc
+# ---------------------------------------------------------
+- ParameterKey: FunctionName
+  ParameterValue: digitalx-${ENVIRONMENT_NAME}-${BUILD_DEFINITIONNAME}
+- ParameterKey: Memory
+  ParameterValue: "${MEMORY}"
+- ParameterKey: Timeout
+  ParameterValue: "${TIMEOUT}"
+- ParameterKey: ReservedConcurrentExecutions
+  ParameterValue: "${ReservedConcurrentExecutions}"
+
+# =========================================================
+# ---- OutBound Proxy
+# ---- ----------------------------------------------------
+# ---- HTTP/HTTPS proxy variables
+# ---------------------------------------------------------
+- ParameterKey: HttpProxy
+  ParameterValue: "http://${DxLOutboundProxyHost}:${DxLOutboundProxyPort}"
+- ParameterKey: NoProxy
+  ParameterValue: "${DxLOutboundProxyExceptions}"
+
+# =========================================================
+# ---- Lambda Custom variables
+# ---- ----------------------------------------------------
+# ---- App specific variables that drive node/client functionality
+# ---------------------------------------------------------

@@ -1,0 +1,34 @@
+{
+  "requestContext": {
+    "elb": {
+      "targetGroupArn": "arn:aws:elasticloadbalancing:eu-west-1:855389350164:targetgroup/dal-re-ElbTa-GOUKBNUMET9X/d0f8e808090f03ff"
+    }
+  },
+  "httpMethod": "GET",
+  "path": "/demo/api/get",
+  "queryStringParameters": {
+    "param": "ValueOfParameter"
+  },
+  "headers": {
+    "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+    "accept-encoding": "gzip, deflate, br",
+    "accept-language": "en-GB,en-US;q=0.9,en;q=0.8",
+    "cookie": "_scid=5b4fed5b-1d4a-41e2-bb70-ff1cbbdfe12c; _gcl_au=1.1.590447635.1697795021; __adal_ca=so%3Ddirect%26me%3Dnone%26ca%3Ddirect%26co%3D%28not%2520set%29%26ke%3D%28not%2520set%29%26cg%3DDirect; _fbp=fb.2.1697795020990.1686860134; __evo_vodafoneuk_2592000=%7B%22uid%22%3A107863877%7D; da_lid=0BA7974F9A72EA12DD36BB990D295F3B4A|0|0|0; __adal_lp=https%3A//shop.dx-int1-blue.internal.vodafoneaws.co.uk/upgrade-and-offers; assetID=f9a5a55e3f66e9e8f397b395; AMCV_BB2A12535131457C0A490D45%40AdobeOrg=-1712354808%7CMCIDTS%7C19704%7CMCMID%7C48412474090637186722103070911133436746%7CMCAAMLH-1702986394%7C6%7CMCAAMB-1702986394%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%7CMCOPTOUT-1702388794s%7CNONE%7CMCAID%7CNONE%7CvVersion%7C4.3.0; __adal_cw=1702387967265; mbox=PC#938b0bae188a43ce8ea5f6a0f02e52f4.37_0#1765632874|session#d2ed113f8b7d40a0b46bb3c7fb517073#1702389826; utag_main=v_id:018b4c7813fc00ade0f927e6013005075005806d00fb8$_sn:34$_se:20$_ss:0$_st:1702389873793$vapi_domain:vodafoneaws.co.uk$dc_visit:32$ses_id:1702387965699%3Bexp-session$_pn:8%3Bexp-session$_prevpage:uk%3Eshop%3Ehandset%3Epaym%3Ecompare%20deals%3Bexp-1702391674506$dc_event:15%3Bexp-session$dc_region:eu-west-1%3Bexp-session$dleUpToDate:true%3Bexp-session; _scid_r=5b4fed5b-1d4a-41e2-bb70-ff1cbbdfe12c; __adal_id=f184a760-a4b3-4882-9639-28f500ff7cc6.1697795021.14.1702388075.1702384166.9477a44b-bb2a-4fb1-a224-5db766734f57; _uetvid=314c1fe03e3b11eca08fc5173e543a50",
+    "host": "dal.dx-dev1-blue.internal.vodafoneaws.co.uk",
+    "sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"macOS\"",
+    "sec-fetch-dest": "document",
+    "sec-fetch-mode": "navigate",
+    "sec-fetch-site": "none",
+    "sec-fetch-user": "?1",
+    "upgrade-insecure-requests": "1",
+    "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "x-amzn-trace-id": "Self=1-657b0f4a-4a05414756718d7b23be021b;Root=1-657b0f4a-11906fc16364e2482270ee96",
+    "x-forwarded-for": "10.10.250.98, 10.10.48.67",
+    "x-forwarded-port": "443",
+    "x-forwarded-proto": "https"
+  },
+  "body": "",
+  "isBase64Encoded": false
+}
